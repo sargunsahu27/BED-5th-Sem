@@ -1,0 +1,20 @@
+const fs=require("fs");
+console.log(fs);
+console.log("start");
+
+setImmediate(()=>{
+    console.log("set Immediate");
+});
+setTimeout(()=>{
+    console.log("settimeout");
+},0);
+fs.readFile("demo.txt","utf-8",(data)=>{
+    console.log("read file");
+    setTimeout(()=>{
+        console.log("timer 2");
+    },0);
+    setImmediate(()=>{
+        console.log("Immediate 2");
+    })
+});
+console.log("end");
