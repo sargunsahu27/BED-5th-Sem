@@ -18,6 +18,7 @@ fs.readFile("lecture-7/users.txt", "utf-8", (err, data) => {
 });
 // This code reads two JSON files, combines their data, and writes the combined data to a new file.
 // It uses the fs module to handle file operations and JSON methods to parse and stringify data
-// The combined data is written in JSON format to the new file "allUsers.txt".
+// The combined data is written in JSON format to the new file "CombinedUsers.txt".
 // This is useful for merging user data from different sources into a single file for further processing or
+
 
