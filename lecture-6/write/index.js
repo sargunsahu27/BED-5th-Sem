@@ -33,3 +33,12 @@ fs.readFile("lecture-6/demo.txt", "utf-8", (err, data) => {
 // To run asynchronous code in sequence or synchronously, you can use Promises or async/await.
 // This example uses callbacks, but you can also use Promises for better readability and error handling
 // or even use async/await for a more synchronous style of coding.
+
+
+
+
+
+// backend homework Assignment part 1
+// write data in a file like demo.txt , data will be passed using terminal like argument from terminal should be written in file (inout from user)
+// process.argv is used to get the input from terminal
+// Assignment naam ka folder banega

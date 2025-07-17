@@ -1,0 +1,23 @@
+// Convert array to string (one object per line) using for loop
+let usersString = "";
+for (let i = 0; i < users.length; i++) {
+    usersString += JSON.stringify(users[i]) + "\n";
+}
+
+// Write to users.txt
+fs.writeFile("lecture-7/users.txt", usersString, function (err) {
+    if (err) return console.log(err);
+    console.log("users written line by line");
+});
+
+// Convert second array similarly
+let usersRepeatString = "";
+for (let i = 0; i < usersrepeat.length; i++) {
+    usersRepeatString += JSON.stringify(usersrepeat[i]) + "\n";
+}
+
+// Write to users2.txt
+fs.writeFile("lecture-7/users2.txt", usersRepeatString, function (err) {
+    if (err) return console.log(err);
+    console.log("users2 written line by line");
+});

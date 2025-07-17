@@ -1,0 +1,2 @@
+This is my first Assignment file on 
+how to take file content as user input
