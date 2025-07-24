@@ -1,0 +1,23 @@
+h1 {
+    font-size: 2.5rem;
+    color: blueviolet;
+    text-align: center;
+    margin-top: 40px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+img {
+    display: block;
+    margin: 0 auto;
+    border: 5px solid blueviolet;
+    border-radius: 10px;
+    width: 300px;
+    height: 200px;
+}
+
+p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #333;    
+}

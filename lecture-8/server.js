@@ -26,6 +26,6 @@ app.get("/blogs",(req,res)=>{
     res.send("gotttt");
 })
 
-app.listen(2223,()=>{
-    console.log("server started");
-})
+app.listen(3090,()=>{
+    console.log("server is running on port 3000");
+});
