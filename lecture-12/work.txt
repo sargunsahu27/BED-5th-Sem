@@ -1,0 +1,7 @@
+// first child , last child , nth child access 
+// input box [enter title] [Add]
+when we press Add (title enter in todo)
+ul[
+    li[todo 1 [edit][delete]]
+    li[todo 1 [edit][delete]]
+] 
