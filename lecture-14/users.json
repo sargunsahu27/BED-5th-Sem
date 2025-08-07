@@ -1,0 +1,14 @@
+[
+    {
+        "id": "1",
+        "name": "Alice",
+        "email": "tyuhg@234.com",
+        "role": "admin"
+    },
+    {
+        "id": "2",
+        "name": "Bob",
+        "email": "sdfghj23@gmail.com",
+        "role": "user"
+        }
+]
