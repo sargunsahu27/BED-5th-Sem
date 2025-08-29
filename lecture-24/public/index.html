@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        BlogApp
+    </title>
+</head>
+<body>
+    <header>
+        
+        <div class="logo">
+            <h1 class="logo-item">Blog App</h1>
+        </div>
+        <div class="nav-links">
+    <nav class="nav">
+        
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/allblogs">All Blogs</a></li>
+            <li><a href="/myblogs">My Blogs</a></li>
+            
+        </ul>
+    </nav>
+    </div>
+    </header>
+    <!--now i have to make container in which we have login form signup form and add blog form-->
+    <main>
+    <div class="container">
+        <h2>Welcome to BlogApp</h2>
+       
+        <h1 class="login-form-title">Login Here!</h1>
+        <form id="login-form" action="" method="POST">
+            <input type="email" id="login-email" placeholder="email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+       <h1 class="signup-form-title">SignUp Here!</h1>
+        <form id="signup-form" action="" >
+            <input type="text" id="signup-username" placeholder="Name" required>
+            <input type="email" id="signup-email" placeholder="Email" required>
+            <input type="password" id="signup-password" placeholder="Password" required>
+            <button type="submit">SignUp</button>
+        </form>
+        <p>Want to add a blog? </p>
+        <h1 class="addblog-form-title">Click here!</h1>
+        <form id="addblog-form" action="" method="GET">
+            <button type="submit">Add Blog</button>
+        </form>
+    </div>
+    </main>
+    <footer></footer>
+    <script src="index.js"></script>
+</body>
+</html>
