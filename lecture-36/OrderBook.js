@@ -1,150 +1,203 @@
-class OrderBook{
-    constructor(symbol){
+class OrderBook {
+    constructor(symbol) {
         this.symbol = symbol;
         this.bids = [];
-        this.asks=[];
-        this.currentPrice=null;
-        this.trades=[];
+        this.asks = [];
+        this.currentPrice = null;
+        this.trades = [];
     }
-    _sort(side){
-        if(side=="BUY"){
-            this.bids.sort((a,b)=>{
-                if(a.price!=b.price){
-                   return  b.price-a.price;
-                }
-                a.timestamp - b.timestamp;
-        });// sort in lexographically (sort by alphabetical order)
-            
-        }
-        else if(side=="SELL"){
-            this.asks.sort((a,b)=>{
-                if(a.price!=b.price){
-                  return   a.price - b.price;
-                }
-                a.timestamp - b.timestamp;
-        });
 
+    _sort(side) {
+        if (side == "BUY") {
+            this.bids.sort((a, b) => {
+                if (a.price != b.price) {
+                    return b.price - a.price; // highest price first
+                }
+                return a.timestamp - b.timestamp; // earlier first
+            });
+        } else if (side == "SELL") {
+            this.asks.sort((a, b) => {
+                if (a.price != b.price) {
+                    return a.price - b.price; // lowest price first
+                }
+                return a.timestamp - b.timestamp;
+            });
+        }
     }
-}
-    placeOrder(price,quantity,type,side,username){
-        let newOrder={
-            symbol:this.symbol,
-            orderId:Math.floor(Math.random()*1000000),
-            side:side,
-            type:type,
-            price:price || null,
-            Originalquantity:quantity,
-            executedQuantity:0,
-            remainingQuantity:quantity,
-            user:username,
-            timestamp:Date.now()
-        }
-        if(newOrder.type=="LIMIT"){
-            let result=this._LimitMatch(newOrder);
-            if(result.remainingQuantity>0){
 
-                if(result.side=="BUY"){
-                this.bids.push(result);
-                }
-                else{
-                    this.asks.push(result);
+    placeOrder(price, quantity, type, side, username) {
+        let newOrder = {
+            symbol: this.symbol,
+            orderId: Math.floor(Math.random() * 1000000),
+            side: side,
+            type: type,
+            price: parseFloat(price) || null,
+            originalQuantity: quantity,
+            executedQuantity: 0,
+            remainingQuantity: quantity,
+            user: username,
+            timestamp: Date.now()
+        };
+let trades = [];
+        if (newOrder.type == "LIMIT") {
+            let [order,trade] = this._LimitMatch(newOrder,trades);
+            if(trade){
+              this.trades=[...this.trades,...trade];
+            }
+            if (order.remainingQuantity > 0) {
+                if (order.side == "BUY") {
+                    this.bids.push(order);
+                } else {
+                    this.asks.push(order);
                 }
                 this._sort(newOrder.side);
             }
-        }
-        else{
-            let result=this._MarketMatch(newOrder);
+        } else if (newOrder.type == "MARKET") {
+            // fixed function call (was _MarketMatch before)
+            let [order,trade] = this._marketMatch(newOrder,trades);
+            if(trade){
+              this.trades=[...this.trades,...trade];
+            }
+            if (order.remainingQuantity > 0) {
+                console.log("Order partially filled: " + order.executedQuantity + ", Cancelled: " + order.remainingQuantity);
+            } else {
+                console.log("Order fully filled: " + order.executedQuantity);
+            }
         }
     }
-    
-    _LimitMatch(order){
-       if(order.side=="BUY"){
-        // match with asks
-        let askArr=this.asks;
-        while(order.remainingQuantity>=0 && askArr.length>0){
-            let top=askArr[0];
-            if(order.price>=top.price){
-               let buyQuantity=Math.min(top.quantity,order.quantity);
-               // update ----> order
-               order.executedQuantity+=buyQuantity;
-               order.remainingQuantity-=buyQuantity;
 
-               top.executedQuantity+=buyQuantity;
-               top.remainingQuantity-=buyQuantity;
-               if(top.remainingQuantity==0){
-                askArr.shift();
-               }
-               
+    _LimitMatch(order,trade) {
+        if (order.side == "BUY") {
+            // match with asks
+            let askArr = this.asks;
+            while (order.remainingQuantity > 0 && askArr.length > 0) {
+                let top = askArr[0];
+                if (order.price >= top.price) {
+                    let buyQuantity = Math.min(top.remainingQuantity, order.remainingQuantity);
+                    this.currentPrice = top.price;
+                    
+                    order.executedQuantity += buyQuantity;
+                    order.remainingQuantity -= buyQuantity;
+                    trade.push([top.price,buyQuantity]);
+
+                    top.executedQuantity += buyQuantity;
+                    top.remainingQuantity -= buyQuantity;
+
+                    if (top.remainingQuantity == 0) {
+                        askArr.shift();
+                    }
+                } else {
+                    break;
+                }
             }
-            else{
-                break;
+            return [order,trade];
+        } else if (order.side == "SELL") {
+            // match with bids
+            let bidArr = this.bids;
+            while (order.remainingQuantity > 0 && bidArr.length > 0) {
+                let top = bidArr[0]; // highest bid
+
+                if (order.price <= top.price) {
+                    let sellQuantity = Math.min(top.remainingQuantity, order.remainingQuantity);
+                    this.currentPrice = top.price;
+
+                    order.executedQuantity += sellQuantity;
+                    order.remainingQuantity -= sellQuantity;
+                    trade.push([top.price,sellQuantity]);
+
+                    top.executedQuantity += sellQuantity;
+                    top.remainingQuantity -= sellQuantity;
+
+                    if (top.remainingQuantity == 0) {
+                        bidArr.shift();
+                    }
+                } else {
+                    break;
+                }
             }
-              
-        }
-        return order;
-       }
-       else if(order.side=="SELL"){
-
-        // match with bids
-         let bidArr = this.bids;
-    while (order.remainingQuantity > 0 && bidArr.length > 0) {
-        let top = bidArr[0]; // highest bid
-        
-        // For a SELL order, match if the bid price >= sell price
-        if (order.price <= top.price) {
-            let sellQuantity = Math.min(top.remainingQuantity, order.remainingQuantity);
-            
-            // update order quantities
-            order.executedQuantity += sellQuantity;
-            order.remainingQuantity -= sellQuantity;
-
-            // update bid quantities
-            top.executedQuantity += sellQuantity;
-            top.remainingQuantity -= sellQuantity;
-
-            // remove fully filled bid from book
-            if (top.remainingQuantity == 0) {
-                bidArr.shift();
-            }
+            return [order,trade];
         } else {
-            // can't match further (no higher bids)
-            break;
+            return "Invalid order side";
         }
     }
-    return order;
-       }
-       else{
-        return "Invalid order side";
-       }
-    }
-    _MarketMatch(){}
 
-     
+    // ✅ Correct and completed market order matching logic
+    _marketMatch(order,trade) {
+        if (order.side == "BUY") {
+            let askArr = this.asks;
+            while (order.remainingQuantity > 0 && askArr.length > 0) {
+                let top = askArr[0];
+                let filledQty = Math.min(order.remainingQuantity, top.remainingQuantity);
+                this.currentPrice = top.price; // latest trade price
+                trade.push([top.price,filledQty]);
+                // update both sides
+                order.executedQuantity += filledQty;
+                order.remainingQuantity -= filledQty;
+                top.executedQuantity += filledQty;
+                top.remainingQuantity -= filledQty;
+
+                if (top.remainingQuantity == 0) {
+                    askArr.shift(); // remove filled ask
+                }
+            }
+            return [order,trade];
+        } else if (order.side == "SELL") {
+            let bidArr = this.bids;
+            while (order.remainingQuantity > 0 && bidArr.length > 0) {
+                let top = bidArr[0];
+                let filledQty = Math.min(order.remainingQuantity, top.remainingQuantity);
+                this.currentPrice = top.price;
+                trade.push([top.price,filledQty]);
+                order.executedQuantity += filledQty;
+                order.remainingQuantity -= filledQty;
+                top.executedQuantity += filledQty;
+                top.remainingQuantity -= filledQty;
+
+                if (top.remainingQuantity == 0) {
+                    bidArr.shift(); // remove filled bid
+                }
+            }
+            return [order,trade];
+        } else {
+            console.log("Invalid market order side");
+            return [ order,trade ];
+        }
+    }
+
+    getPrice() {
+        return this.currentPrice;
+    }
+
+    getBookSnapShot() {
+        return {
+            "asks": this.asks.map((a) => [a.price, a.remainingQuantity]),
+            "bids": this.bids.map((b) => [b.price, b.remainingQuantity])
+        };
+    }
+    getlatestTrades(){
+        return this.trades;
+    }
 }
 
-let BTCUSDOrderBook=new OrderBook("BTCUSD");
-// BTCUSDOrderBook.bids.push({price:100,quantity:10,type:"LIMIT",user:"Sargun"});
-// BTCUSDOrderBook.bids.push({price:105,quantity:5,type:"LIMIT",user:"Kavya"});
-// BTCUSDOrderBook.bids.push({price:102,quantity:20,type:"LIMIT",user:"Muskan"});
+// ---------------- Test ----------------
+let BTCUSDOrderBook = new OrderBook("BTCUSD");
 
-// BTCUSDOrderBook._sort("BUY");
-// console.log("Bids:",BTCUSDOrderBook.bids);
-// BTCUSDOrderBook.asks.push({price:110,quantity:8,type:"LIMIT",user:"Manik"});
-// BTCUSDOrderBook.asks.push({price:108,quantity:15,type:"LIMIT",user:"Kamaal"});
-// BTCUSDOrderBook.asks.push({price:112,quantity:12,type:"LIMIT",user:"Simmi"});
-// BTCUSDOrderBook._sort("SELL");
-// console.log("Asks:",BTCUSDOrderBook.asks);
+BTCUSDOrderBook.placeOrder("100", 5, "LIMIT", "BUY", "Sargun");
+BTCUSDOrderBook.placeOrder("101", 10, "LIMIT", "BUY", "Kavya");
+BTCUSDOrderBook.placeOrder("99", 5, "LIMIT", "BUY", "Sargunnn");
+console.log(BTCUSDOrderBook.getBookSnapShot());
+console.log("Trades: "+BTCUSDOrderBook.getlatestTrades());
+BTCUSDOrderBook.placeOrder("102", 5, "LIMIT", "SELL", "Sargun");
+BTCUSDOrderBook.placeOrder("103", 5, "LIMIT", "SELL", "Kavya");
+BTCUSDOrderBook.placeOrder("104", 5, "LIMIT", "SELL", "Sargunnn");
+console.log(BTCUSDOrderBook.getBookSnapShot());
+console.log("Trades: "+BTCUSDOrderBook.getlatestTrades());
+BTCUSDOrderBook.placeOrder("101", 3, "LIMIT", "SELL", "Sargunnn");
+console.log("Current Price:", BTCUSDOrderBook.getPrice());
 
-BTCUSDOrderBook.placeOrder("100",5,"LIMIT","BUY","Sargun");
-BTCUSDOrderBook.placeOrder("101",10,"LIMIT","BUY","Kavya");
-BTCUSDOrderBook.placeOrder("99",6,"LIMIT","BUY","Sargunnn");
-console.log(BTCUSDOrderBook);
-BTCUSDOrderBook.placeOrder("100",5,"LIMIT","SELL","Sargun");
-BTCUSDOrderBook.placeOrder("101",3,"LIMIT","SELL","Kavya");
-BTCUSDOrderBook.placeOrder("99",4,"LIMIT","SELL","Sargunnn");
-console.log(BTCUSDOrderBook);
+// ✅ Test market orders
+BTCUSDOrderBook.placeOrder(null, 7, "MARKET", "BUY", "Rohan");
+BTCUSDOrderBook.placeOrder(null, 10, "MARKET", "SELL", "Aditi");
 
-
-
-
-// Homework -- market match ka function complete krna hai 
+console.log("Snapshot:", BTCUSDOrderBook.getBookSnapShot());
+console.log("Trades: "+BTCUSDOrderBook.getlatestTrades());
